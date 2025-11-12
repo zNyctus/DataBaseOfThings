@@ -8,10 +8,21 @@ import pymongo
 #pip install -r requirements.txt
 #felicidade
 
-client = pymongo.MongoClient("SUA_CONNECTION_STRING_MONGO")
-db = client["database_of_things"]
+
+#Usando o meu banco - Brenda hehe 
+client = pymongo.MongoClient("mongodb://197402:197402@177.67.253.61:27017/?authSource=197402")    # Para acesso interno: @10.0.237.41:27017
+
+# Teste de conexão
+try:
+    client.admin.command("ping")
+    print("✅ Conexão com o MongoDB UPF bem-sucedida!")
+except Exception as e:
+    print("❌ Erro ao conectar ao MongoDB:", e)
+
+db = client["197402"]
 col_itens = db["itens"]
 col_movimentacoes = db["movimentacoes"]
+
 
 app = FastAPI()
 
