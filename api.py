@@ -2,15 +2,18 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 import pymongo 
 from typing import List # Importante para listas
+import os
+from dotenv import load_dotenv
 
 #Se for preciso essa chatice aqui Set-ExecutionPolicy Unrestricted -Scope Process
 #.\.venv\Scripts\activate
 #pip install -r requirements.txt
 #felicidade
 
-
+load_dotenv()
+mongo_url = os.getenv("MONGO_URL")
 #Usando o meu banco - Brenda hehe 
-client = pymongo.MongoClient("mongodb://197402:197402@177.67.253.61:27017/?authSource=197402")    # Para acesso interno: @10.0.237.41:27017
+client = pymongo.MongoClient(mongo_url)    # Para acesso interno: @10.0.237.41:27017
 
 # Teste de conexão
 try:
