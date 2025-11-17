@@ -1,7 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 import pymongo 
-
+from typing import List # Importante para listas
 
 #Se for preciso essa chatice aqui Set-ExecutionPolicy Unrestricted -Scope Process
 #.\.venv\Scripts\activate
@@ -26,10 +26,91 @@ col_movimentacoes = db["movimentacoes"]
 
 app = FastAPI()
 
+
+# --- MODELOS PYDANTIC ---
+
+# Modelo para CADASTRAR um item novo (pelo PC)
+class ItemCreate(BaseModel):
+    rfid_uid: str  # "_id" no Mongo
+    nome: str
+    quantidade_inicial: int = 0
+
+# Modelo para ATUALIZAR o nome (é em código) de um item 
+class ItemUpdate(BaseModel):
+    nome: str 
+
+# Modelo para exibir itens (retorno da API)
+class ItemInDB(BaseModel):
+    rfid_uid: str
+    nome: str
+    quantidade: int
+
+# Modelo para registrar uma movimentação 
 class Movimentacao(BaseModel):
     rfid_uid: str
-    acao: str
+    acao: str      # "entrada" ou "saida"
     quantidade: int
+
+
+
+
+
+# ======== Parte de itens ========
+
+@app.post("/itens", status_code=status.HTTP_201_CREATED, response_model=ItemInDB)   
+async def cadastrar_item(item: ItemCreate):
+    """
+    (PC) Cadastra um novo item (associa RFID a um nome).
+    """
+    # Verifica se o item já existe
+    if col_itens.find_one({"_id": item.rfid_uid}):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
+                            detail="Item com este RFID já cadastrado")
+    
+    # Prepara o documento para o MongoDB
+    item_db = {
+        "_id": item.rfid_uid,
+        "nome": item.nome,
+        "quantidade": item.quantidade_inicial
+    }
+    col_itens.insert_one(item_db)
+    
+    # Retorna o item criado no formato do ItemInDB
+    return {"rfid_uid": item.rfid_uid, "nome": item.nome, "quantidade": item.quantidade_inicial}
+
+
+@app.put("/itens/{rfid_uid}", response_model=ItemInDB)
+async def atualizar_item(rfid_uid: str, item_update: ItemUpdate):
+    """
+    (ADMIN) Atualiza o nome de um item existente.
+    """
+    result = col_itens.update_one(
+        {"_id": rfid_uid},
+        {"$set": {"nome": item_update.nome}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Item não encontrado")
+    
+    item_atualizado = col_itens.find_one({"_id": rfid_uid})
+    item_atualizado["rfid_uid"] = item_atualizado.pop("_id")
+    return item_atualizado
+
+
+@app.delete("/itens/{rfid_uid}")
+async def deletar_item(rfid_uid: str):
+    """
+    (ADMIN) Deleta um item do cadastro.
+    """
+    result = col_itens.delete_one({"_id": rfid_uid})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Item não encontrado")
+    
+    return {"message": "Item deletado com sucesso", "rfid_uid": rfid_uid}
+
 
 @app.post("/movimentacoes")
 async def registrar_movimentacao(mov: Movimentacao):
@@ -54,6 +135,13 @@ async def registrar_movimentacao(mov: Movimentacao):
     col_movimentacoes.insert_one(mov.dict())
     
     return {"message": "Movimentação registrada", "estoque_atual": nova_quantidade}
+
+
+
+
+
+
+
 
 # Endpoint que é pro frontend usar
 @app.get("/itens")
