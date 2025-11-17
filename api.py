@@ -1,19 +1,19 @@
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 import pymongo 
-from typing import List # Importante para listas
+from typing import List 
 import os
 from dotenv import load_dotenv
 
-#Se for preciso essa chatice aqui Set-ExecutionPolicy Unrestricted -Scope Process
-#.\.venv\Scripts\activate
-#pip install -r requirements.txt
-#felicidade
-
+# Carrega as variáveis do arquivo .env
 load_dotenv()
+
+# Pega a URL do banco das variáveis de ambiente
 mongo_url = os.getenv("MONGO_URL")
-#Usando o meu banco - Brenda hehe 
-client = pymongo.MongoClient(mongo_url)    # Para acesso interno: @10.0.237.41:27017
+
+# Conecta ao Banco
+# (Se der erro aqui, verifique se o arquivo .env está criado corretamente com a variável MONGO_URL)
+client = pymongo.MongoClient(mongo_url)
 
 # Teste de conexão
 try:
@@ -55,9 +55,6 @@ class Movimentacao(BaseModel):
     quantidade: int
 
 
-
-
-
 # ======== Parte de itens ========
 
 @app.post("/itens", status_code=status.HTTP_201_CREATED, response_model=ItemInDB)   
@@ -85,7 +82,7 @@ async def cadastrar_item(item: ItemCreate):
 @app.put("/itens/{rfid_uid}", response_model=ItemInDB)
 async def atualizar_item(rfid_uid: str, item_update: ItemUpdate):
     """
-    (ADMIN) Atualiza o nome de um item existente.
+    Atualiza o nome de um item existente.
     """
     result = col_itens.update_one(
         {"_id": rfid_uid},
@@ -104,7 +101,7 @@ async def atualizar_item(rfid_uid: str, item_update: ItemUpdate):
 @app.delete("/itens/{rfid_uid}")
 async def deletar_item(rfid_uid: str):
     """
-    (ADMIN) Deleta um item do cadastro.
+    Deleta um item do cadastro.
     """
     result = col_itens.delete_one({"_id": rfid_uid})
     
@@ -118,32 +115,44 @@ async def deletar_item(rfid_uid: str):
 @app.post("/movimentacoes")
 async def registrar_movimentacao(mov: Movimentacao):
     
+    # Quantidade deve ser positiva
+    if mov.quantidade <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="A quantidade deve ser maior que zero."
+        )
+
+    # Buscar item no banco
     item = col_itens.find_one({"_id": mov.rfid_uid})
     
     if not item:
         return {"message": "Erro: Item não cadastrado", "estoque_atual": 0}
 
     nova_quantidade = item["quantidade"]
+
+    # Registrar ENTRADA
     if mov.acao == "entrada":
         nova_quantidade += mov.quantidade
+
+    # Registrar SAÍDA (com validação de estoque)
     elif mov.acao == "saida":
+        if item["quantidade"] - mov.quantidade < 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Estoque insuficiente. Estoque atual: {item['quantidade']}"
+            )
         nova_quantidade -= mov.quantidade
 
+    # Atualizar o item no DB
     col_itens.update_one(
         {"_id": mov.rfid_uid},
         {"$set": {"quantidade": nova_quantidade}}
     )
-    
-    #Registrar o log da movimentação
+
+    # Registrar log
     col_movimentacoes.insert_one(mov.dict())
     
     return {"message": "Movimentação registrada", "estoque_atual": nova_quantidade}
-
-
-
-
-
-
 
 
 # Endpoint que é pro frontend usar
