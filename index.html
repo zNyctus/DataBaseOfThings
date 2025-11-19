@@ -40,7 +40,7 @@
     <script>
         const API_URL = "http://127.0.0.1:8000/itens"; // Endereço da API
 
-        async def carregarDados() {
+        async function carregarDados() {
             try {
                 const resposta = await fetch(API_URL);
                 if (!resposta.ok) throw new Error("Erro na API");
@@ -84,3 +84,4 @@
 </body>
 
 </html>
+
