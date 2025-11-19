@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Of Things - Estoque</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        h1 { color: #333; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 800px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #007bff; color: white; border-radius: 5px 5px 0 0; }
+        tr:hover { background-color: #f1f1f1; }
+        .status { font-size: 0.9em; color: #666; margin-bottom: 10px; text-align: right; }
+        .badge { padding: 5px 10px; border-radius: 15px; font-size: 0.8em; font-weight: bold; }
+        .badge-ok { background-color: #d4edda; color: #155724; }
+        .badge-low { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+    <h1>📦 Controle de Estoque Inteligente</h1>
+    
+    <div class="card">
+        <div class="status">Status: <span id="api-status">Carregando...</span></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome do Item</th>
+                    <th>RFID (UID)</th>
+                    <th>Quantidade</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-corpo">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000/itens"; // Endereço da sua API
+
+        async def carregarDados() {
+            try {
+                const resposta = await fetch(API_URL);
+                if (!resposta.ok) throw new Error("Erro na API");
+                
+                const itens = await resposta.json();
+                const tabela = document.getElementById("tabela-corpo");
+                const status = document.getElementById("api-status");
+
+                tabela.innerHTML = ""; // Limpa a tabela
+                status.innerHTML = "🟢 Online";
+                status.style.color = "green";
+
+                itens.forEach(item => {
+                    // Define cor se o estoque estiver baixo (< 5)
+                    let classeQtd = item.quantidade < 5 ? "badge badge-low" : "badge badge-ok";
+                    
+                    let linha = `
+                        <tr>
+                            <td><strong>${item.nome}</strong></td>
+                            <td style="font-family: monospace;">${item.rfid_uid}</td>
+                            <td><span class="${classeQtd}">${item.quantidade} unid.</span></td>
+                        </tr>
+                    `;
+                    tabela.innerHTML += linha;
+                });
+
+            } catch (erro) {
+                console.error(erro);
+                document.getElementById("api-status").innerHTML = "🔴 Offline (Verifique a API)";
+                document.getElementById("api-status").style.color = "red";
+            }
+        }
+
+        // Carrega na hora que abre
+        carregarDados();
+        
+        // Atualiza sozinho a cada 3 segundos
+        setInterval(carregarDados, 3000);
+    </script>
+
+</body>
+</html>

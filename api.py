@@ -4,6 +4,7 @@ import pymongo
 from typing import List 
 import os
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
 # Carrega as variáveis do arquivo .env
 load_dotenv()
@@ -29,6 +30,15 @@ col_movimentacoes = db["movimentacoes"]
 
 app = FastAPI()
 
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --- MODELOS PYDANTIC ---
 
