@@ -41,6 +41,7 @@ pip install -r requirements.txt
 
 ```env
 MONGO_URL=mongodb://197402:197402@177.67.253.61:27017/?authSource=197402
+```
 
 5. Executar o servidor
 
