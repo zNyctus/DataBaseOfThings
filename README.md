@@ -37,7 +37,12 @@ Para o Windows, se necessário: Set-ExecutionPolicy Unrestricted -Scope Process
 
 pip install -r requirements.txt
 
-4. Executar o servidor
+*** 4. Criar arquivo de nome ".env" no mesmo diretório, e colar o seguinte texto:***
+'''
+MONGO_URL = mongodb://197402:197402@177.67.253.61:27017/?authSource=197402
+'''
+
+5. Executar o servidor
 
 uvicorn api:app --reload
 
