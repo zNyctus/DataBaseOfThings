@@ -1,4 +1,4 @@
-Sistema Inteligente de Controle de Estoque com ESP32, RFID e Integração a API REST
+# Sistema Inteligente de Controle de Estoque com ESP32, RFID e Integração a API REST
 
 Projeto final desenvolvido para a disciplina de Database of Things do curso de Engenharia de Computação (UPF). O sistema integra hardware embarcado (ESP32), comunicação web (API REST) e banco de dados orientado a documentos (MongoDB) para gerenciar entradas e saídas de um almoxarifado físico.
 
