@@ -46,7 +46,7 @@ source venv\Scripts\activate
 ```
 pip install -r requirements.txt
 ```
-**4. Criar arquivo de nome ".env" no mesmo diretório, e colar o seguinte texto:**
+**4. Se não existir, criar arquivo de nome ".env" no mesmo diretório, e colar o seguinte texto:**
 
 ```env
 MONGO_URL=mongodb://197402:197402@177.67.253.61:27017/?authSource=197402
