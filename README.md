@@ -23,20 +23,29 @@ INSTALAÇÃO E EXECUÇÃO
 Siga os passos abaixo para rodar a API localmente.
 
 1. Clonar o repositório
-
+```
 git clone [https://github.com/zNyctus/DataBaseOfThings.git](https://github.com/zNyctus/DataBaseOfThings.git)
 cd DataBaseOfThings
-
+```
 2. Criar e ativar ambiente virtual
-
+```
 python -m venv .venv
-Para o Windows, se necessário: Set-ExecutionPolicy Unrestricted -Scope Process
-.\.venv\Scripts\activate **ou** source venv\Scripts\activate
-
+```
+Para o Windows, se necessário: 
+```
+Set-ExecutionPolicy Unrestricted -Scope Process 
+```
+```
+.\.venv\Scripts\activate
+```
+**ou**
+```
+source venv\Scripts\activate
+```
 3. Instalar dependências
-
+```
 pip install -r requirements.txt
-
+```
 **4. Criar arquivo de nome ".env" no mesmo diretório, e colar o seguinte texto:**
 
 ```env
@@ -44,9 +53,9 @@ MONGO_URL=mongodb://197402:197402@177.67.253.61:27017/?authSource=197402
 ```
 
 5. Executar o servidor
-
+```
 uvicorn api:app --reload
-
+```
 
 DOCUMENTAÇÃO DOS ENDOPOINTS 
 
